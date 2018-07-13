@@ -10,7 +10,7 @@ namespace CsvParser
 	{
 		#region Fields
 		private readonly List<CsvRow> _rows;
-		private   FileInfo _fileInfo;
+		private FileInfo _fileInfo;
 		#endregion
 		#region Constuctors
 		public CsvTable(string file_path, bool isHeaderFirstFow = false)
@@ -27,7 +27,7 @@ namespace CsvParser
 
 		public List<CsvRow> Rows { get => _rows; }
 
-		public DateTimeOffset UnixTime { get;   }
+		public DateTimeOffset UnixTime { get; }
 		public string FileName { get => _fileInfo.Name; }
 		#endregion
 		#region Private Methods
@@ -40,72 +40,80 @@ namespace CsvParser
 			}
 			catch (ArgumentOutOfRangeException e)
 			{
-				Console.WriteLine("Помилковий формат таблиці:");
 				throw e;
-			} 
-			
+			}
+
 			catch (Exception e)
 			{
-				Console.WriteLine("Помилка відкриття файлу:");
-				throw e;
+				throw new Exception("Помилка відкриття файлу:", e);
 			}
 		}
 		private void Parser(string csv)
 		{
-			//CsvRow row = new CsvRow(IsHeaderFirstFow);
-			CsvRow headerRow = new CsvRow(IsHeaderFirstFow);
-			CsvRow row = headerRow;
-
-			int coll = 0;
-			int indexSatart = 0;
-			int indexEnd = 0;
-			int indexRowEnd = 0;
-
-
-			while (indexSatart < csv.Length)
+			try
 			{
-				bool lastColl = false;
-				string delimiter = ",";
+				CsvRow headerRow = new CsvRow(IsHeaderFirstFow);
+				CsvRow row = headerRow;
 
-				if (!(csv[indexSatart] == '\"'))
-				{
-					delimiter = ",";
-					indexRowEnd = csv.IndexOf("\n", indexSatart) == -1 ? csv.Length : csv.IndexOf("\n", indexSatart);
-					indexEnd = Math.Min(csv.IndexOf(delimiter, indexSatart), indexRowEnd);
-				}
-				else
-				{
-					delimiter = "\",";
-					indexEnd = csv.IndexOf(delimiter, indexSatart) == -1 ? csv.Length : csv.IndexOf(delimiter, indexSatart);
-					indexRowEnd = csv.IndexOf("\n", indexEnd) == -1 ? csv.Length : csv.IndexOf("\n", indexEnd);
-				}
+				int coll = 0;
+				int indexSatart = 0;
+				int indexEnd = 0;
+				int indexRowEnd = 0;
 
-				if (indexEnd == -1 | indexEnd == indexRowEnd)
-				{
-					indexEnd = indexRowEnd;
-					lastColl = true;
-				}
-				int endRow = indexEnd == indexRowEnd ? 1 : 0;
-				row.Cells.Add(new CsvCell
-				{
-					Value = csv
-					.Substring(indexSatart + delimiter.Length - 1, indexEnd - (indexSatart + delimiter.Length - 1) - endRow)
-					.Replace("\"\"", "\"")
-				});
 
-				if (headerRow.Cells[coll].MaxWidth < row.Cells[coll].Value.Length)
+				while (indexSatart < csv.Length)
 				{
-					headerRow.Cells[coll].MaxWidth = row.Cells[coll].Value.Length;
-				}
-				coll++;
-				indexSatart = indexEnd + delimiter.Length;
+					bool lastColl = false;
+					string delimiter = ",";
 
-				if (lastColl)
-				{
-					_rows.Add(row);
-					row = new CsvRow();
-					coll = 0;
+					if ((csv[indexSatart] == '\"'))
+					{
+						delimiter = "\",";
+						indexEnd = csv.IndexOf(delimiter, indexSatart) == -1 ? csv.Length : csv.IndexOf(delimiter, indexSatart);
+						indexRowEnd = csv.IndexOf("\n", indexEnd) == -1 ? csv.Length : csv.IndexOf("\n", indexEnd);
+					}
+					else
+					{
+						delimiter = ",";
+						indexRowEnd = csv.IndexOf("\n", indexSatart) == -1 ? csv.Length : csv.IndexOf("\n", indexSatart);
+						indexEnd = Math.Min(csv.IndexOf(delimiter, indexSatart), indexRowEnd);
+					}
+
+					if (indexEnd == -1 | indexEnd == indexRowEnd)
+					{
+						indexEnd = indexRowEnd;
+						lastColl = true;
+					}
+					int endRow = indexEnd == indexRowEnd ? 1 : 0;
+					row.Cells.Add(new CsvCell
+					{
+						Value = csv
+						.Substring(indexSatart + delimiter.Length - 1, indexEnd - (indexSatart + delimiter.Length - 1) - endRow)
+						.Replace("\"\"", "\"")
+					});
+
+					if (headerRow.Cells[coll].MaxWidth < row.Cells[coll].Value.Length)
+					{
+						headerRow.Cells[coll].MaxWidth = row.Cells[coll].Value.Length;
+					}
+					coll++;
+					indexSatart = indexEnd + delimiter.Length;
+
+					if (lastColl)
+					{
+						_rows.Add(row);
+						row = new CsvRow();
+						coll = 0;
+					}
 				}
+			}
+			catch (ArgumentOutOfRangeException e)
+			{
+				throw new Exception("Помилковий формат таблиці:", e);
+			}
+			catch (Exception e)
+			{
+				throw e;
 			}
 			return;
 		}
@@ -113,11 +121,10 @@ namespace CsvParser
 		#region Public Methods
 		public void ConsolePrint()
 		{
-			
-
-			
+			int i = 0;
 			foreach (CsvRow row in _rows)
 			{
+				i++;
 
 			}
 		}
