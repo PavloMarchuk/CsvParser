@@ -12,10 +12,9 @@ namespace test
 		static void Main(string[] args)
 		{
 			//string file_path = @"c:\temp\file1.csv";
-			//string s =@"C:\Users\Admin\Desktop\Parser\CsvParser\test\bin\Debug\netcoreapp2.0\win10-x64\test.exe --file=[c:\temp\file1.csv] --header-first-row=true";
+			//string s =@"C:\Users\Admin\Desktop\Parser\CsvParser\test\bin\Debug\netcoreapp2.0\win10-x64\test.exe --file=[c:\temp\file1.csv]  ";
 			//CommandLineApplication commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: false);
 			//CommandArgument names = null;
-
 
 
 			Dictionary<string, string> properties = new Dictionary<string, string>();
@@ -23,10 +22,9 @@ namespace test
 			{
 				properties.Add(s.Substring(s.IndexOf("--") + 2, s.IndexOf("=[") - 2), s.Substring(s.IndexOf("=[") + 2, s.IndexOf("]") - (s.IndexOf("=[") + 2)));
 			}
-			foreach (var item in properties)
-			{
-				Console.WriteLine(item.Key);
-			}
+
+			foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
+				Console.WriteLine("  {0} = {1}", de.Key, de.Value);
 
 
 			bool haveHeader = true;
@@ -44,11 +42,9 @@ namespace test
 				Console.WriteLine("Please enter a Path");
 			}
 
-
-
-
 			Console.ReadLine();
 		}
 
+		
 	}
 }
