@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace CsvParser
@@ -15,11 +16,12 @@ namespace CsvParser
 		#region Constuctors
 		public CsvTable(string file_path, bool isHeaderFirstFow = false)
 		{
+			IsHeaderFirstFow = isHeaderFirstFow;
 			_rows = new List<CsvRow>();
 			Parser(Loader(file_path));
 
 			UnixTime = DateTimeOffset.Now;
-			IsHeaderFirstFow = isHeaderFirstFow;
+
 		}
 		#endregion
 		#region Properties
@@ -121,13 +123,88 @@ namespace CsvParser
 		#region Public Methods
 		public void ConsolePrint()
 		{
-			int i = 0;
-			foreach (CsvRow row in _rows)
-			{
-				i++;
+			CsvRow header = Rows.Where(r => r.IsHeader).FirstOrDefault();
 
+
+			string topFileStr = "File: {" + $"{FileName}" + "}";
+
+			if (header != null)
+			{
+				int tableWidth;
+				int halthPadding = 0;
+				tableWidth  = header.Cells.Sum(c => c.MaxWidth) + 5;
+				halthPadding = tableWidth > topFileStr.Length ? (tableWidth / 2) - (topFileStr.Length / 2) : 0;
+				Console.WriteLine(new string(' ', halthPadding) + topFileStr);
+
+				for (int i = 0; i < tableWidth + (header.Cells.Count) * 2  +5; i++ ) { Console.Write("─"); }
+				int intchar = 0;
+				Console.Write($"\n│   │");
+				foreach (CsvCell cell in header.Cells)
+				{
+					Console.Write(" " + new string(' ', ((cell.MaxWidth - 1) / 2))
+						+ (char)(intchar + 65)
+						+ new string(' ', cell.MaxWidth - ((cell.MaxWidth - 1) / 2)) + "│");
+					intchar++;
+				}
+				Console.WriteLine();
+				for (int i = 0; i < tableWidth + (header.Cells.Count) * 2 + 5; i++)
+				{
+					Console.Write("─");
+				}
+				Console.Write($"\n│   │");
+
+				foreach (CsvCell cell in header.Cells)
+				{
+					int tmp = cell.MaxWidth - cell.Value.Length;
+					Console.Write( " " + new string(' ', ((cell.MaxWidth - cell.Value.Length) / 2))
+						+ cell.Value
+						+ new string(' ', 1 + (cell.MaxWidth - ((cell.MaxWidth - cell.Value.Length) / 2 + cell.Value.Length))) + "│");
+				}
+				Console.WriteLine();
+				for (int i = 0; i < tableWidth + (header.Cells.Count) * 2 + 5; i++)
+				{
+					Console.Write("─");
+				}
+				Console.WriteLine();
+
+				IEnumerable<CsvRow> body = Rows.Where(r => r.IsHeader == false);
+				int rowNum = 1;
+				int coll = 0;
+				foreach (CsvRow row in body)
+				{
+					Console.Write ($"│{rowNum,-3}│");
+					
+					foreach (CsvCell cell in row.Cells)
+					{
+						Console.Write($" {cell.Value}{new string(' ', header.Cells[coll].MaxWidth - cell.Value.Length)} │");
+						coll++;
+					}
+					Console.WriteLine();
+					rowNum++;
+					coll = 0;
+				}
+				for (int i = 0; i < tableWidth + (header.Cells.Count) * 2 + 5; i++) { Console.Write("─"); }
+
+				string ts = "Timestamp: {" + $"{UnixTime.ToUnixTimeSeconds() }" + "}";
+				Console.Write (Environment.NewLine);
+				Console.WriteLine( new string (' ', tableWidth + header.Cells.Count*3 - ts.Length)  + ts);
+				 
+			}
+
+			else
+			{
+				foreach (CsvRow row in _rows)
+				{
+					foreach (CsvCell cell in row.Cells)
+					{
+						Console.Write($"{cell.Value, -30} │");
+					}
+					Console.WriteLine();
+				}
 			}
 		}
 		#endregion
+
 	}
 }
+//
